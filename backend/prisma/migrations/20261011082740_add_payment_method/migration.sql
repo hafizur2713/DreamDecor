@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `booking` ADD COLUMN `paymentMethod` ENUM('CASH_ON_SITE', 'ONLINE') NOT NULL DEFAULT 'CASH_ON_SITE';

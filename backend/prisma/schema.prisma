@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  CUSTOMER
+  ADMIN
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  UNPAID
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  CASH_ON_SITE
+  ONLINE
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  name         String
+  email        String    @unique
+  passwordHash String
+  phone        String?
+  role         UserRole  @default(CUSTOMER)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  bookings     Booking[]
+}
+
+model DecorationPackage {
+  id          Int           @id @default(autoincrement())
+  name        String
+  description String?       @db.Text
+  details     String?       @db.Text
+  price       Decimal       @db.Decimal(10, 2)
+  imageUrl    String?
+  images      PackageImage[]
+  isActive    Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  bookings    Booking[]
+}
+
+model Booking {
+  id                  Int               @id @default(autoincrement())
+  eventType           String
+  eventDate           DateTime
+  venueAddress        String            @db.Text
+  notes               String?           @db.Text
+  status              BookingStatus     @default(PENDING)
+  paymentStatus       PaymentStatus     @default(UNPAID)
+  paymentMethod       PaymentMethod     @default(CASH_ON_SITE)
+  priceAtBooking      Decimal           @db.Decimal(10, 2)
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  userId              Int
+  decorationPackageId Int
+  user                User              @relation(fields: [userId], references: [id])
+  decorationPackage   DecorationPackage @relation(fields: [decorationPackageId], references: [id])
+}
+
+model PackageImage {
+  id                  Int               @id @default(autoincrement())
+  url                 String            @db.VarChar(2048)
+  altText             String?           @db.VarChar(255)
+  sortOrder           Int               @default(0)
+  createdAt           DateTime          @default(now())
+  decorationPackageId Int
+  decorationPackage   DecorationPackage @relation(fields: [decorationPackageId], references: [id], onDelete: Cascade)
+
+  @@index([decorationPackageId, sortOrder])
+}
